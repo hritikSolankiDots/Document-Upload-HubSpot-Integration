@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Your Documents</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Add FontAwesome for better icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <div class="bg-white shadow-2xl rounded-3xl p-8 mb-8 border border-gray-100">
+      <!-- Header section with improved visuals -->
+      <div class="mb-10 text-center">
+        <div class="bg-blue-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg class="h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <h1 class="mt-4 text-3xl font-bold text-gray-800">
+          Welcome, <%= contact.firstName || 'there' %>!
+        </h1>
+        <h3 class="text-lg text-gray-600 mt-2 font-medium">
+          Your email:
+          <span class="text-blue-600 font-semibold">
+            <%= contact.email %>
+          </span>
+        </h3>
+        <p class="mt-2 text-gray-600 max-w-xl mx-auto">
+          Please upload all required identification documents below to complete your verification
+        </p>
+      </div>
+
+      <!-- Status messages with animations -->
+      <% if (locals.successMessage) { %>
+        <div
+          class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-lg flex items-center animate-fade-in">
+          <i class="fas fa-check-circle mr-3 text-green-500"></i>
+          <p>
+            <%= successMessage %>
+          </p>
+        </div>
+        <% } %>
+
+          <% if (locals.errorMessage) { %>
+            <div
+              class="mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded-lg flex items-center animate-fade-in">
+              <i class="fas fa-exclamation-circle mr-3 text-red-500"></i>
+              <p>
+                <%= errorMessage %>
+              </p>
+            </div>
+            <% } %>
+
+              <!-- Document upload instructions with better styling -->
+              <div class="mb-8 p-5 bg-blue-50 border border-blue-100 text-blue-800 rounded-xl">
+                <h3 class="font-semibold mb-3 flex items-center text-blue-700">
+                  <i class="fas fa-info-circle mr-2"></i>Required Documents:
+                </h3>
+                <ol class="list-decimal ml-6 space-y-2">
+                  <li>Passport or National ID (front and back)</li>
+                  <li>Driver's License (if applicable)</li>
+                  <li>Proof of Address (utility bill, bank statement, etc.)</li>
+                  <li>Any additional supporting documents</li>
+                </ol>
+                <div class="mt-3 text-sm bg-white p-3 rounded-lg border border-blue-100">
+                  <p class="flex items-center">
+                    <i class="fas fa-shield-alt text-blue-600 mr-2"></i>
+                    <span>All documents must be clear, unedited, and less than 10MB in size (PDF, JPG or PNG
+                      format).</span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Upload form -->
+              <form action="/api/documents/upload" method="post" enctype="multipart/form-data" class="space-y-8"
+                id="uploadForm">
+                <!-- Hidden fields -->
+                <input type="hidden" name="contactId" value="<%= contact.id %>" />
+                <input type="hidden" name="contactEmail" value="<%= contact.email %>" />
+
+                <!-- Document 1 -->
+                <div
+                  class="p-6 border border-gray-200 rounded-xl bg-white hover:shadow-md transition-shadow duration-300">
+                  <h3 class="text-lg font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-id-card text-blue-600 mr-2"></i>
+                    Document 1: Identity Document
+                  </h3>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Document type -->
+                    <div class="md:col-span-1">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Document Type <span class="text-red-500">*</span>
+                      </label>
+                      <div class="relative">
+                        <select name="documentType1" required
+                          class="w-full border border-gray-300 rounded-lg p-3 pr-8 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                          <option value="" disabled selected>Select type</option>
+                          <option value="passport">Passport</option>
+                          <option value="national_id_front">National ID (Front)</option>
+                          <option value="national_id_back">National ID (Back)</option>
+                        </select>
+                        <div
+                          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- File upload area with improved drag & drop -->
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Upload File <span class="text-red-500">*</span>
+                      </label>
+                      <div class="flex items-center justify-center w-full">
+                        <label
+                          class="flex flex-col w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-colors">
+                          <div class="flex flex-col items-center justify-center pt-5 pb-4">
+                            <svg class="w-10 h-10 text-gray-400 group-hover:text-blue-500" fill="none"
+                              stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                              </path>
+                            </svg>
+                            <p class="text-sm text-gray-500 mt-2">Drag and drop or click to browse</p>
+                            <p class="text-xs text-gray-400 mt-1">PDF, JPG or PNG (Max 10MB)</p>
+                            <div class="file-preview-1 absolute hidden mt-2 flex flex-col items-center">
+                              <div class="file-icon text-blue-600 mb-1"><i class="fas fa-file-alt text-xl"></i></div>
+                              <p class="file-name-1 text-xs text-blue-600 font-medium"></p>
+                              <div class="file-size-1 text-xs text-gray-500"></div>
+                            </div>
+                          </div>
+                          <input type="file" name="document1" class="file-upload hidden" data-index="1"
+                            accept=".pdf,.jpg,.jpeg,.png" required />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Document 2 -->
+                <div
+                  class="p-6 border border-gray-200 rounded-xl bg-white hover:shadow-md transition-shadow duration-300">
+                  <h3 class="text-lg font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-id-badge text-blue-600 mr-2"></i>
+                    Document 2: Identity Document
+                  </h3>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Document type -->
+                    <div class="md:col-span-1">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Document Type <span class="text-red-500">*</span>
+                      </label>
+                      <div class="relative">
+                        <select name="documentType2" required
+                          class="w-full border border-gray-300 rounded-lg p-3 pr-8 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                          <option value="" disabled selected>Select type</option>
+                          <option value="drivers_license_front">Driver's License (Front)</option>
+                          <option value="drivers_license_back">Driver's License (Back)</option>
+                          <option value="passport">Passport</option>
+                        </select>
+                        <div
+                          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- File upload area -->
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Upload File <span class="text-red-500">*</span>
+                      </label>
+                      <div class="flex items-center justify-center w-full">
+                        <label
+                          class="flex flex-col w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-colors">
+                          <div class="flex flex-col items-center justify-center pt-5 pb-4">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                              </path>
+                            </svg>
+                            <p class="text-sm text-gray-500 mt-2">Drag and drop or click to browse</p>
+                            <p class="text-xs text-gray-400 mt-1">PDF, JPG or PNG (Max 10MB)</p>
+                            <div class="file-preview-2 absolute hidden mt-2 flex flex-col items-center">
+                              <div class="file-icon text-blue-600 mb-1"><i class="fas fa-file-alt text-xl"></i></div>
+                              <p class="file-name-2 text-xs text-blue-600 font-medium"></p>
+                              <div class="file-size-2 text-xs text-gray-500"></div>
+                            </div>
+                          </div>
+                          <input type="file" name="document2" class="file-upload hidden" data-index="2"
+                            accept=".pdf,.jpg,.jpeg,.png" required />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Document 3 -->
+                <div
+                  class="p-6 border border-gray-200 rounded-xl bg-white hover:shadow-md transition-shadow duration-300">
+                  <h3 class="text-lg font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-home text-blue-600 mr-2"></i>
+                    Document 3: Proof of Address
+                  </h3>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Document type -->
+                    <div class="md:col-span-1">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Document Type <span class="text-red-500">*</span>
+                      </label>
+                      <div class="relative">
+                        <select name="documentType3" required
+                          class="w-full border border-gray-300 rounded-lg p-3 pr-8 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                          <option value="" disabled selected>Select type</option>
+                          <option value="utility_bill">Utility Bill</option>
+                          <option value="bank_statement">Bank Statement</option>
+                          <option value="tax_document">Tax Document</option>
+                          <option value="rental_agreement">Rental Agreement</option>
+                          <option value="other_address">Other Proof of Address</option>
+                        </select>
+                        <div
+                          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- File upload area -->
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Upload File <span class="text-red-500">*</span>
+                      </label>
+                      <div class="flex items-center justify-center w-full">
+                        <label
+                          class="flex flex-col w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-colors">
+                          <div class="flex flex-col items-center justify-center pt-5 pb-4">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                              </path>
+                            </svg>
+                            <p class="text-sm text-gray-500 mt-2">Drag and drop or click to browse</p>
+                            <p class="text-xs text-gray-400 mt-1">PDF, JPG or PNG (Max 10MB)</p>
+                            <div class="file-preview-3 absolute hidden mt-2 flex flex-col items-center">
+                              <div class="file-icon text-blue-600 mb-1"><i class="fas fa-file-alt text-xl"></i></div>
+                              <p class="file-name-3 text-xs text-blue-600 font-medium"></p>
+                              <div class="file-size-3 text-xs text-gray-500"></div>
+                            </div>
+                          </div>
+                          <input type="file" name="document3" class="file-upload hidden" data-index="3"
+                            accept=".pdf,.jpg,.jpeg,.png" required />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Document 4 -->
+                <div
+                  class="p-6 border border-gray-200 rounded-xl bg-white hover:shadow-md transition-shadow duration-300">
+                  <h3 class="text-lg font-semibold mb-4 text-gray-700 flex items-center">
+                    <i class="fas fa-file-alt text-blue-600 mr-2"></i>
+                    Document 4: Additional Document
+                  </h3>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Document type -->
+                    <div class="md:col-span-1">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Document Type <span class="text-red-500">*</span>
+                      </label>
+                      <div class="relative">
+                        <select name="documentType4" required
+                          class="w-full border border-gray-300 rounded-lg p-3 pr-8 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                          <option value="" disabled selected>Select type</option>
+                          <option value="income_proof">Proof of Income</option>
+                          <option value="employment_letter">Employment Letter</option>
+                          <option value="residency_permit">Residency Permit</option>
+                          <option value="insurance_document">Insurance Document</option>
+                          <option value="other_supporting">Other Supporting Document</option>
+                        </select>
+                        <div
+                          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- File upload area -->
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Upload File <span class="text-red-500">*</span>
+                      </label>
+                      <div class="flex items-center justify-center w-full">
+                        <label
+                          class="flex flex-col w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-colors">
+                          <div class="flex flex-col items-center justify-center pt-5 pb-4">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                              </path>
+                            </svg>
+                            <p class="text-sm text-gray-500 mt-2">Drag and drop or click to browse</p>
+                            <p class="text-xs text-gray-400 mt-1">PDF, JPG or PNG (Max 10MB)</p>
+                            <div class="file-preview-4 absolute hidden mt-2 flex flex-col items-center">
+                              <div class="file-icon text-blue-600 mb-1"><i class="fas fa-file-alt text-xl"></i></div>
+                              <p class="file-name-4 text-xs text-blue-600 font-medium"></p>
+                              <div class="file-size-4 text-xs text-gray-500"></div>
+                            </div>
+                          </div>
+                          <input type="file" name="document4" class="file-upload hidden" data-index="4"
+                            accept=".pdf,.jpg,.jpeg,.png" required />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Optional 5th Document with improved styling -->
+                <div
+                  class="p-6 border border-gray-200 border-dashed rounded-xl bg-white hover:shadow-md transition-shadow duration-300">
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-700 flex items-center">
+                      <i class="fas fa-plus-circle text-blue-600 mr-2"></i>
+                      Document 5: Additional Document
+                    </h3>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">Optional</span>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <!-- Document type -->
+                    <div class="md:col-span-1">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Document Type
+                      </label>
+                      <div class="relative">
+                        <select name="documentType5"
+                          class="w-full border border-gray-300 rounded-lg p-3 pr-8 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                          <option value="" selected>Select type (optional)</option>
+                          <option value="birth_certificate">Birth Certificate</option>
+                          <option value="marriage_certificate">Marriage Certificate</option>
+                          <option value="social_security">Social Security Card</option>
+                          <option value="medical_record">Medical Record</option>
+                          <option value="other_document">Other Document</option>
+                        </select>
+                        <div
+                          class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- File upload area -->
+                    <div class="md:col-span-2">
+                      <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Upload File
+                      </label>
+                      <div class="flex items-center justify-center w-full">
+                        <label
+                          class="flex flex-col w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-colors">
+                          <div class="flex flex-col items-center justify-center pt-5 pb-4">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                              </path>
+                            </svg>
+                            <p class="text-sm text-gray-500 mt-2">Drag and drop or click to browse</p>
+                            <p class="text-xs text-gray-400 mt-1">PDF, JPG or PNG (Max 10MB)</p>
+                            <div class="file-preview-5 absolute hidden mt-2 flex flex-col items-center">
+                              <div class="file-icon text-blue-600 mb-1"><i class="fas fa-file-alt text-xl"></i></div>
+                              <p class="file-name-5 text-xs text-blue-600 font-medium"></p>
+                              <div class="file-size-5 text-xs text-gray-500"></div>
+                            </div>
+                          </div>
+                          <input type="file" name="document5" class="file-upload hidden" data-index="5"
+                            accept=".pdf,.jpg,.jpeg,.png" />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Submit section with improved styling -->
+                <div class="pt-6">
+                  <div class="flex items-start mb-6">
+                    <div class="flex items-center h-5">
+                      <input id="consent-checkbox" name="consent" type="checkbox" required
+                        class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    </div>
+                    <div class="ml-3 text-sm">
+                      <label for="consent-checkbox" class="font-medium text-gray-700">
+                        I confirm that all provided documents are authentic and belong to me.
+                      </label>
+                      <p class="text-gray-500 mt-1">I consent to their processing as per the
+                        <a href="#" class="text-blue-600 hover:underline">privacy policy</a>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button type="submit" id="submit-button" disabled
+                    class="w-full flex justify-center items-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl transition duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+                    <span id="button-text">Submit All Documents</span>
+                    <span id="loading-spinner" class="hidden ml-3">
+                      <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </form>
+
+              <!-- Progress indicator with improved styling -->
+              <div class="mt-10 pt-6 border-t border-gray-200">
+                <div class="flex justify-between items-center mb-2">
+                  <h4 class="font-medium text-gray-700 flex items-center">
+                    <i class="fas fa-tasks text-blue-600 mr-2"></i>Upload Progress
+                  </h4>
+                  <span class="text-sm bg-blue-50 text-blue-700 py-1 px-3 rounded-full font-medium"
+                    id="progress-text">0/4 Required Documents</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                  <div class="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out" id="progress-bar"
+                    style="width: 0%"></div>
+                </div>
+              </div>
+    </div>
+
+    <!-- Security notice -->
+    <div class="bg-white p-5 rounded-xl shadow mb-8 border border-gray-200">
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <i class="fas fa-lock text-green-600 text-xl"></i>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-gray-700">Secure Document Processing</h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Your documents are encrypted during transit and securely stored in compliance with data protection
+            regulations.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Support contact -->
+    <div class="text-center text-sm text-gray-600 mb-8">
+      <p>Need help? Our support team is available 24/7</p>
+      <div class="mt-2 flex justify-center space-x-4">
+        <a href="mailto:support@example.com" class="text-blue-600 hover:underline flex items-center">
+          <i class="fas fa-envelope mr-1"></i> support@example.com</a>
+        <a href="tel:+18005551234" class="text-blue-600 hover:underline flex items-center">
+          <i class="fas fa-phone-alt mr-1"></i> 1-800-555-1234
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const fileUploads = document.querySelectorAll('.file-upload');
+      const consentCheckbox = document.getElementById('consent-checkbox');
+      const submitButton = document.getElementById('submit-button');
+      const buttonText = document.getElementById('button-text');
+      const loadingSpinner = document.getElementById('loading-spinner');
+      const form = document.getElementById('uploadForm');
+      const progressBar = document.getElementById('progress-bar');
+      const progressText = document.getElementById('progress-text');
+
+      // Add CSS for step indicators
+      const style = document.createElement('style');
+      style.textContent = `
+        .step-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: relative;
+          z-index: 1;
+        }
+        .step-circle {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background-color: #e5e7eb;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+          color: #6b7280;
+          margin-bottom: 8px;
+          transition: all 0.3s ease;
+        }
+        .step-text {
+          font-size: 0.875rem;
+          color: #6b7280;
+          transition: all 0.3s ease;
+        }
+        .step-line {
+          flex: 1;
+          height: 2px;
+          background-color: #e5e7eb;
+          margin-top: -15px;
+        }
+        .step-item.active .step-circle {
+          background-color: #3b82f6;
+          color: white;
+        }
+        .step-item.active .step-text {
+          color: #3b82f6;
+          font-weight: 500;
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.6s ease-in-out;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .file-preview-container {
+          display: flex;
+          align-items: center;
+          background-color: #f0f9ff;
+          padding: 8px;
+          border-radius: 6px;
+          margin-top: 8px;
+        }
+      `;
+      document.head.appendChild(style);
+
+      // Handle file uploads with better file information display
+      fileUploads.forEach(fileInput => {
+        const index = fileInput.dataset.index;
+        const filePreview = document.querySelector(`.file-preview-${index}`);
+        const fileNameElement = document.querySelector(`.file-name-${index}`);
+        const fileSizeElement = document.querySelector(`.file-size-${index}`);
+        const dropZone = fileInput.parentElement;
+
+        fileInput.addEventListener('change', function () {
+          if (this.files && this.files[0]) {
+            const file = this.files[0];
+            const fileName = file.name;
+            const fileSize = formatFileSize(file.size);
+
+            // Show file preview with icon based on file type
+            filePreview.classList.remove('hidden');
+
+            // Update file name and size
+            fileNameElement.textContent = fileName.length > 20 ? fileName.substring(0, 17) + '...' : fileName;
+            fileSizeElement.textContent = fileSize;
+
+            // Add file type icon
+            const fileIcon = filePreview.querySelector('.file-icon i');
+            if (file.type.includes('pdf')) {
+              fileIcon.className = 'fas fa-file-pdf text-red-500 text-xl';
+            } else if (file.type.includes('image')) {
+              fileIcon.className = 'fas fa-file-image text-green-500 text-xl';
+            } else {
+              fileIcon.className = 'fas fa-file-alt text-blue-500 text-xl';
+            }
+
+            // Show feedback on upload area
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+            setTimeout(() => {
+              dropZone.classList.remove('bg-blue-50');
+            }, 300);
+
+            // Validate file size
+            if (file.size > 10 * 1024 * 1024) { // 10MB
+              showNotification('File size exceeds 10MB limit. Please select a smaller file.', 'error');
+              this.value = '';
+              filePreview.classList.add('hidden');
+              dropZone.classList.remove('border-blue-500');
+            }
+
+            updateProgress();
+          } else {
+            filePreview.classList.add('hidden');
+            dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+            updateProgress();
+          }
+        });
+
+        // Enhanced drag and drop handling
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+          dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('border-blue-500', 'bg-blue-50');
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+          dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('bg-blue-50');
+            // Keep the blue border if there's a file
+            if (!(fileInput.files && fileInput.files[0])) {
+              dropZone.classList.remove('border-blue-500');
+            }
+          });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+
+          if (files && files.length) {
+            fileInput.files = files;
+
+            // Trigger change event
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+          }
+        });
+      });
+
+      // Format file size to user-friendly format
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+      }
+
+      // Show notification function
+      function showNotification(message, type = 'info') {
+        // Remove any existing notification
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+          existingNotification.remove();
+        }
+
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 p-4 rounded-lg shadow-lg max-w-md z-50 animate-fade-in`;
+
+        // Set styles based on notification type
+        if (type === 'error') {
+          notification.classList.add('bg-red-100', 'text-red-700', 'border-l-4', 'border-red-500');
+          notification.innerHTML = `<div class="flex items-center"><i class="fas fa-exclamation-circle mr-2 text-red-500"></i>${message}</div>`;
+        } else if (type === 'success') {
+          notification.classList.add('bg-green-100', 'text-green-700', 'border-l-4', 'border-green-500');
+          notification.innerHTML = `<div class="flex items-center"><i class="fas fa-check-circle mr-2 text-green-500"></i>${message}</div>`;
+        } else {
+          notification.classList.add('bg-blue-100', 'text-blue-700', 'border-l-4', 'border-blue-500');
+          notification.innerHTML = `<div class="flex items-center"><i class="fas fa-info-circle mr-2 text-blue-500"></i>${message}</div>`;
+        }
+
+        // Add notification to DOM
+        document.body.appendChild(notification);
+
+        // Remove notification after 5 seconds
+        setTimeout(() => {
+          notification.classList.add('opacity-0');
+          setTimeout(() => {
+            notification.remove();
+          }, 300);
+        }, 5000);
+      }
+
+      // Update progress bar with animation and improved visual feedback
+      function updateProgress() {
+        let filledCount = 0;
+        const requiredInputs = Array.from(fileUploads).filter((input, i) => i < 4); // First 4 are required
+
+        requiredInputs.forEach(input => {
+          if (input.files && input.files[0]) {
+            filledCount++;
+          }
+        });
+
+        const progressPercentage = (filledCount / requiredInputs.length) * 100;
+
+        // Animate progress bar
+        progressBar.style.width = `${progressPercentage}%`;
+
+        // Update progress text with visual cues
+        progressText.textContent = `${filledCount}/${requiredInputs.length} Required Documents`;
+
+        // Change progress bar color based on completion
+        if (progressPercentage === 100) {
+          progressBar.classList.remove('bg-blue-600');
+          progressBar.classList.add('bg-green-500');
+          progressText.classList.remove('bg-blue-50', 'text-blue-700');
+          progressText.classList.add('bg-green-50', 'text-green-700');
+        } else {
+          progressBar.classList.add('bg-blue-600');
+          progressBar.classList.remove('bg-green-500');
+          progressText.classList.add('bg-blue-50', 'text-blue-700');
+          progressText.classList.remove('bg-green-50', 'text-green-700');
+        }
+
+        // Enable submit only if all required files are uploaded and consent is checked
+        checkSubmitEligibility();
+      }
+
+      // Check if form can be submitted with improved visual feedback
+      function checkSubmitEligibility() {
+        const requiredInputs = Array.from(fileUploads).filter((input, i) => i < 4); // First 4 are required
+        const allRequiredFilled = requiredInputs.every(input => input.files && input.files[0]);
+        const isConsentChecked = consentCheckbox.checked;
+
+        if (allRequiredFilled && isConsentChecked) {
+          submitButton.disabled = false;
+          submitButton.classList.add('animate-pulse');
+          setTimeout(() => {
+            submitButton.classList.remove('animate-pulse');
+          }, 1000);
+        } else {
+          submitButton.disabled = true;
+        }
+      }
+
+      // Listen for consent checkbox changes with animation
+      consentCheckbox.addEventListener('change', function () {
+        checkSubmitEligibility();
+
+        if (this.checked) {
+          this.parentElement.classList.add('scale-110');
+          setTimeout(() => {
+            this.parentElement.classList.remove('scale-110');
+          }, 200);
+        }
+      });
+
+      form.addEventListener('submit', async function (e) {
+        if (this.checkValidity()) {
+          e.preventDefault();
+
+          buttonText.textContent = 'Uploading Documents...';
+          loadingSpinner.classList.remove('hidden');
+          submitButton.disabled = true;
+
+          const formData = new FormData(form);
+
+          try {
+            const response = await fetch('/upload-documents', {
+              method: 'POST',
+              body: formData
+            });
+
+            if (response.ok) {
+              showNotification('All documents have been successfully uploaded!', 'success');
+              buttonText.textContent = 'Documents Uploaded!';
+              submitButton.classList.remove('bg-blue-600');
+              submitButton.classList.add('bg-green-600');
+              loadingSpinner.classList.add('hidden');
+
+              // Reset form and UI
+              form.reset();
+              // Hide file previews
+              document.querySelectorAll('[class^="file-preview-"]').forEach(el => el.classList.add('hidden'));
+              // Reset progress bar and text
+              progressBar.style.width = '0%';
+              progressText.textContent = '0/4 Required Documents';
+              progressBar.classList.remove('bg-green-500');
+              progressBar.classList.add('bg-blue-600');
+              progressText.classList.remove('bg-green-50', 'text-green-700');
+              progressText.classList.add('bg-blue-50', 'text-blue-700');
+              submitButton.disabled = true;
+              buttonText.textContent = 'Submit All Documents';
+            } else {
+              const error = await response.json();
+              showNotification(error.error || 'Upload failed', 'error');
+              buttonText.textContent = 'Submit All Documents';
+              loadingSpinner.classList.add('hidden');
+              submitButton.disabled = false;
+            }
+          } catch (err) {
+            showNotification('Network error. Please try again.', 'error');
+            buttonText.textContent = 'Submit All Documents';
+            loadingSpinner.classList.add('hidden');
+            submitButton.disabled = false;
+          }
+        }
+      });
+
+      // Initial progress update
+      updateProgress();
+    });
+  </script>
+</body>
+
+</html>
