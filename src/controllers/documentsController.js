@@ -54,11 +54,11 @@ export const handleDocumentUpload = [
 
       // Use util to upload files and get their IDs
       const fileIds = await uploadFilesToHubspot(files);
-      console.log('Uploaded files:', fileIds);
+      // console.log('Uploaded files:', fileIds);
 
       // Create a HubSpot note with attachments
       const engagement = await createNoteWithAttachments(contactId, fileIds);
-      console.log('Created engagement:', engagement.id);
+      // console.log('Created engagement:', engagement);
 
       res.json({ message: 'Files uploaded, note created, and associations made' });
     } catch (err) {
