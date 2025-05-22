@@ -1,7 +1,7 @@
 
 import multer from 'multer';
 
-import { createNoteWithAttachments, decodePortalPayload, getContactById, uploadFilesToHubspot } from '../utils/hubspot_utils.js';
+import { createNoteWithAttachments, decodePortalPayload, getContactById, uploadFiles } from '../utils/hubspot_utils.js';
 
 export async function showUploadPage(req, res, next) {
   try {
@@ -32,38 +32,33 @@ const upload = multer().fields([
   { name: 'document5' }
 ]);
 
-// Controller array for Express route
+
 export const handleDocumentUpload = [
   upload,
   async (req, res, next) => {
     try {
       const contactId = req.body.contactId;
-      if (!contactId) {
-        return res.status(400).json({ error: 'Missing contactId' });
-      }
+      if (!contactId) return res.status(400).json({ error: 'Missing contactId' });
 
-      // Gather uploaded files
       const files = [];
       for (let i = 1; i <= 5; i++) {
         const arr = req.files[`document${i}`];
         if (arr && arr[0]) files.push(arr[0]);
       }
-      if (!files.length) {
-        return res.status(400).json({ error: 'No files uploaded' });
-      }
+      if (!files.length) return res.status(400).json({ error: 'No files uploaded' });
 
-      // Use util to upload files and get their IDs
-      const fileIds = await uploadFilesToHubspot(files);
-      // console.log('Uploaded files:', fileIds);
+      // Step 1: upload
+      const fileIds = await uploadFiles(files);
 
-      // Create a HubSpot note with attachments
-      const engagement = await createNoteWithAttachments(contactId, fileIds);
-      // console.log('Created engagement:', engagement);
+      // create note + attach files via Engagements API v1
+      const note = await createNoteWithAttachments(contactId, fileIds);
 
-      res.json({ message: 'Files uploaded, note created, and associations made' });
+
+      res.json({ message: 'Files uploaded, note created, and attachments associated', note });
     } catch (err) {
       next(err);
     }
   }
 ];
+
 
