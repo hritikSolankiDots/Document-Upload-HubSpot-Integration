@@ -1,169 +1,27 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title><%= company.name %> – Home</title>
-
-  <!-- Tailwind (browser build) -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  <!-- FontAwesome -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web App Status</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f3f4f6;
+      color: #111827;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
-
-  <!-- Navbar -->
-  <nav class="bg-white shadow fixed w-full z-10">
-    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-      <a href="#home" class="text-2xl font-bold text-indigo-600">
-        <i class="fas fa-building mr-2"></i><%= company.name %>
-      </a>
-      <ul class="flex space-x-6">
-        <li><a href="#about" class="hover:text-indigo-600">About</a></li>
-        <li><a href="#services" class="hover:text-indigo-600">Services</a></li>
-        <li><a href="#contact" class="hover:text-indigo-600">Contact</a></li>
-      </ul>
-    </div>
-  </nav>
-
-  <!-- Spacer to offset fixed navbar -->
-  <div class="h-20" id="home"></div>
-
-  <!-- Hero -->
-  <header
-    class="bg-indigo-600 text-white text-center py-20"
-    style="background-image: url('/images/hero-bg.jpg'); background-size: cover;"
-  >
-    <div class="backdrop-brightness-75 p-8 rounded-lg inline-block">
-      <h1 class="text-4xl md:text-6xl font-extrabold mb-4"><%= company.tagline %></h1>
-      <p class="text-lg md:text-2xl max-w-2xl mx-auto"><%= company.description %></p>
-    </div>
-  </header>
-
-  <!-- About Section -->
-  <section id="about" class="container mx-auto px-4 py-16">
-    <h2 class="text-3xl font-semibold mb-4 flex items-center text-indigo-600">
-      <i class="fas fa-info-circle mr-3"></i>About Us
-    </h2>
-    <p class="text-gray-700 leading-relaxed">
-      <%= company.description %>
-    </p>
-  </section>
-
-  <!-- Services Section -->
-  <section id="services" class="bg-white py-16">
-    <div class="container mx-auto px-4">
-      <h2 class="text-3xl font-semibold mb-8 flex items-center text-green-600">
-        <i class="fas fa-concierge-bell mr-3"></i>Our Services
-      </h2>
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="p-6 border rounded-lg hover:shadow-lg transition">
-          <i class="fas fa-cogs fa-2x text-indigo-500 mb-4"></i>
-          <h3 class="text-xl font-medium mb-2">Consulting</h3>
-          <p class="text-gray-600">Expert advice to optimize your business processes and operations.</p>
-        </div>
-        <div class="p-6 border rounded-lg hover:shadow-lg transition">
-          <i class="fas fa-chart-line fa-2x text-indigo-500 mb-4"></i>
-          <h3 class="text-xl font-medium mb-2">Analytics</h3>
-          <p class="text-gray-600">Data-driven insights to help you make informed decisions.</p>
-        </div>
-        <div class="p-6 border rounded-lg hover:shadow-lg transition">
-          <i class="fas fa-shield-alt fa-2x text-indigo-500 mb-4"></i>
-          <h3 class="text-xl font-medium mb-2">Security</h3>
-          <p class="text-gray-600">Robust solutions to protect your infrastructure and data.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Contact Section -->
-  <section id="contact" class="container mx-auto px-4 py-16">
-    <h2 class="text-3xl font-semibold mb-6 flex items-center text-red-600">
-      <i class="fas fa-envelope mr-3"></i>Get in Touch
-    </h2>
-    <div class="grid md:grid-cols-2 gap-8">
-      <!-- Contact Info -->
-      <div>
-        <p class="text-gray-700 mb-4">Feel free to reach out via phone or email, or send us a message directly:</p>
-        <p class="flex items-center text-gray-600 mb-2">
-          <i class="fas fa-phone-alt mr-2"></i>
-          <a href="tel:<%= company.contact.phone %>" class="hover:text-indigo-600"><%= company.contact.phone %></a>
-        </p>
-        <p class="flex items-center text-gray-600">
-          <i class="fas fa-envelope mr-2"></i>
-          <a href="mailto:<%= company.contact.email %>" class="hover:text-indigo-600"><%= company.contact.email %></a>
-        </p>
-      </div>
-      <!-- Contact Form -->
-      <form action="/contact" method="POST" class="space-y-4">
-        <input
-          type="text"
-          name="name"
-          placeholder="Your Name"
-          required
-          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Your Email"
-          required
-          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        />
-        <textarea
-          name="message"
-          rows="4"
-          placeholder="Your Message"
-          required
-          class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        ></textarea>
-        <button
-          type="submit"
-          class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-        >
-          Send Message
-        </button>
-      </form>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="bg-gray-800 text-gray-400 py-8">
-    <div class="container mx-auto px-4 grid md:grid-cols-3 gap-8">
-      <!-- Quick Links -->
-      <div>
-        <h4 class="text-white font-semibold mb-4">Quick Links</h4>
-        <ul class="space-y-2">
-          <li><a href="#about" class="hover:text-white">About</a></li>
-          <li><a href="#services" class="hover:text-white">Services</a></li>
-          <li><a href="#contact" class="hover:text-white">Contact</a></li>
-        </ul>
-      </div>
-      <!-- Contact Info -->
-      <div>
-        <h4 class="text-white font-semibold mb-4">Contact Us</h4>
-        <p class="flex items-center mb-2"><i class="fas fa-map-marker-alt mr-2"></i><%= company.address.line1 %>, <%= company.address.city %></p>
-        <p class="flex items-center mb-2"><i class="fas fa-phone-alt mr-2"></i><a href="tel:<%= company.contact.phone %>" class="hover:text-white"><%= company.contact.phone %></a></p>
-        <p class="flex items-center"><i class="fas fa-envelope mr-2"></i><a href="mailto:<%= company.contact.email %>" class="hover:text-white"><%= company.contact.email %></a></p>
-      </div>
-      <!-- Social -->
-      <div>
-        <h4 class="text-white font-semibold mb-4">Follow Us</h4>
-        <div class="flex space-x-4">
-          <a href="#" class="hover:text-white"><i class="fab fa-facebook fa-lg"></i></a>
-          <a href="#" class="hover:text-white"><i class="fab fa-twitter fa-lg"></i></a>
-          <a href="#" class="hover:text-white"><i class="fab fa-linkedin fa-lg"></i></a>
-          <a href="#" class="hover:text-white"><i class="fab fa-instagram fa-lg"></i></a>
-        </div>
-      </div>
-    </div>
-    <div class="text-center mt-8 text-sm">
-      &copy; <%= new Date().getFullYear() %> <%= company.name %>. All rights reserved.
-    </div>
-  </footer>
-
+<body>
+  <h1>Web Application is Running</h1>
 </body>
 </html>

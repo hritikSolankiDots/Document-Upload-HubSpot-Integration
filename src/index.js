@@ -4,7 +4,6 @@ import path from 'path';
 import { errorHandler } from './middlewares/errorHandler.js';
 import webhookRouter from './routes/webhook.js';
 import documentsRouter from './routes/documents.js';
-const router = express.Router();
 const app = express();
 const PORT = process.env.PORT || 3000;
 

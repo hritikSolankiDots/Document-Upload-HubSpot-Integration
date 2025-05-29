@@ -1,6 +1,7 @@
 import axios from 'axios';
 import createError from 'http-errors';
 import FormData from 'form-data';
+import path from 'path';
 
 const { HUBSPOT_ACCESS_TOKEN, PORTAL_BASE_URL } = process.env;
 if (!HUBSPOT_ACCESS_TOKEN) {
@@ -26,7 +27,7 @@ const engagementsClient = axios.create({
 /**
  * Fetch a contact by its ID.
  */
-export async function getContactById(id, properties = ['email', 'firstname', 'lastname']) {
+export async function getContactById(id, properties = ['email', 'firstname', 'lastname', 'financial_application_form_submitted', 'document_approved_status']) {
   try {
     const { data } = await crmClient.get(`/contacts/${id}`, {
       params: { properties: properties.join(',') },
@@ -37,6 +38,20 @@ export async function getContactById(id, properties = ['email', 'firstname', 'la
       throw createError(404, 'Contact not found');
     }
     throw err;
+  }
+}
+
+/**
+ * Update a contact's properties by ID.
+ */
+export async function updateContactProperties(contactId, properties = {}) {
+  try {
+    const payload = { properties };
+    const { data } = await crmClient.patch(`/contacts/${contactId}`, payload);
+    return data;
+  } catch (err) {
+    console.error('Contact update failed:', err.response?.status, err.response?.data);
+    throw new Error(`Contact update error: ${err.response?.statusText || err.message}`);
   }
 }
 
@@ -80,21 +95,36 @@ export function buildPortalLink(contact) {
 /**
  * Upload files to HubSpot and return an array of file IDs.
  */
-export async function uploadFiles(files) {
+
+export async function uploadFiles(files, contactPrefix, fieldLabels = {}) {
   const ids = [];
 
   for (const file of files) {
+    // derive a human-readable label for the field
+    const label = fieldLabels[file.fieldname] || file.fieldname;
+    // strip out bad chars, lowercase, replace spaces
+    const baseName = path.basename(file.originalname);
+    const safeName = `${contactPrefix}_${label}_${baseName}`
+      .replace(/[^a-zA-Z0-9._-]/g, '_');
+
     const form = new FormData();
     form.append('file', file.buffer, {
-      filename: file.originalname,
+      filename: safeName,
       contentType: file.mimetype,
-      knownLength: file.size,
+      knownLength: file.size
     });
     form.append('options', JSON.stringify({ access: 'PRIVATE' }));
     form.append('folderPath', '/uploads');
 
-    const response = await filesClient.post('', form, { headers: form.getHeaders() });
-    ids.push(response.data.id);
+    try {
+      const response = await filesClient.post('', form, {
+        headers: form.getHeaders()
+      });
+      ids.push(response.data.id);
+    } catch (error) {
+      console.error('File upload failed:', error.response?.status, error.response?.data);
+      throw new Error(`File upload error: ${error.response?.statusText || error.message}`);
+    }
   }
 
   return ids;

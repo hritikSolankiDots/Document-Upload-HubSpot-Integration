@@ -1,5 +1,6 @@
 import express from 'express';
 import { showUploadPage, handleDocumentUpload } from '../controllers/documentsController.js';
+import { upload } from '../utils/multerConfig.js';
 
 const router = express.Router();
 
@@ -24,11 +25,12 @@ const companyInfo = {
 
 // GET home page
 router.get('/', (req, res) => {
+  console.log("sfsfsafas");
   res.render('home', { company: companyInfo });
 });
 
 // When someone GETs /upload-documents?data=...
 router.get('/upload-documents', showUploadPage);
-router.post('/upload-documents', handleDocumentUpload);
+router.post('/upload-documents', upload, handleDocumentUpload);
 
 export default router;
