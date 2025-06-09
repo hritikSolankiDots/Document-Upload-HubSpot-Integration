@@ -135,10 +135,10 @@
                       <label class="block text-sm font-medium text-gray-700 mb-2">
                         Tax File Number (TFN) <span class="text-red-500">*</span>
                       </label>
-                      <input type="text" name="tfn" id="tfn" maxlength="9" pattern="[0-9]{8,9}"
+                      <input type="text" name="tfn" id="tfn" maxlength="9" pattern="[0-9]{9}"
                         class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#56d487] focus:border-[#56d487]"
-                        placeholder="Enter 8-9 digit TFN">
-                      <p class="text-xs text-gray-500 mt-1">8-9 digits only</p>
+                        placeholder="Enter 9 digit TFN">
+                      <p class="text-xs text-gray-500 mt-1">9 digits only</p>
                     </div>
 
                     <div>
@@ -207,7 +207,7 @@
 
                     <div>
                       <label class="block text-sm font-medium text-gray-700 mb-2">
-                        4 Consecutive Payslips <span class="text-red-500">*</span>
+                        Payslips <span class="text-red-500">*</span>
                       </label>
                       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="flex items-center justify-center">
@@ -466,7 +466,6 @@
       </div>
     </div>
   </div>
-
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const form = document.getElementById('applicationForm');
@@ -484,6 +483,10 @@
       const employedSection = document.getElementById('employedSection');
       const centrelinkSection = document.getElementById('centrelinkSection');
       const selfEmployedSection = document.getElementById('selfEmployedSection');
+
+      const bankStatements = document.querySelector('input[name="bankStatements"]');
+      const proofOfRent = document.querySelector('input[name="proofOfRent"]');
+      const identityDocument = document.querySelector('input[name="identityDocument"]');
 
       // Show/hide ATO debt section
       owesATOSelect.addEventListener('change', function () {
@@ -569,34 +572,34 @@
       document.getElementById('payslipFrequency').addEventListener('change', function () {
         const payslipInputs = document.querySelectorAll('input[name*="payslip"]');
 
-        // Reset all payslips
         payslipInputs.forEach((input, index) => {
-          input.required = false;
+          // 1) Reset the file input
           input.value = '';
           clearValidationError(input);
+
+          // 2) Reset its label UI
+          const label = input.closest('label');
+          const p = label.querySelector('p');
+          p.textContent = `Payslip ${index + 1}`;
+          p.classList.remove('text-green-600', 'font-medium');
+          label.classList.remove('border-green-400', 'bg-green-50');
+          label.classList.add('border-gray-300');
+
+          // 3) Decide whether this field stays visible/required
           const container = input.closest('.flex');
-          if (container) {
+          if (this.value === 'Weekly') {
+            input.required = true;
             container.style.display = 'flex';
+          } else if ((this.value === 'Fortnightly' || this.value === 'Monthly') && index < 2) {
+            input.required = true;
+            container.style.display = 'flex';
+          } else {
+            input.required = false;
+            container.style.display = 'none';
           }
         });
 
-        if (this.value === 'Weekly') {
-          // Weekly: Show all 4 payslips, all required
-          payslipInputs.forEach(input => input.required = true);
-        } else if (this.value === 'Fortnightly' || this.value === 'Monthly') {
-          // Fortnightly/Monthly: Show only first 2 payslips, only those required
-          payslipInputs.forEach((input, index) => {
-            if (index < 2) {
-              input.required = true;
-            } else {
-              input.required = false;
-              const container = input.closest('.flex');
-              if (container) {
-                container.style.display = 'none';
-              }
-            }
-          });
-        }
+        // Finally, re-calc your progress bar
         updateProgress();
       });
 
@@ -674,8 +677,6 @@
         }
       }
 
-
-
       function clearValidationError(input) {
         let existingError;
 
@@ -700,8 +701,7 @@
         }
       }
 
-
-      // File upload feedback
+      // File upload feedback + max-size validation only
       const fileInputs = document.querySelectorAll('input[type="file"]');
       fileInputs.forEach(input => {
         input.addEventListener('invalid', function (e) {
@@ -727,7 +727,7 @@
               message = 'Please upload your ATO notice';
               break;
             case 'bankStatements':
-              message = 'Please upload your bank statements (last 3 months)';
+              message = 'Please upload your Bank Statements (last 3 months)';
               break;
             case 'proofOfRent':
               message = 'Please upload proof of rent';
@@ -742,26 +742,54 @@
         });
 
         input.addEventListener('change', function () {
-          const label = this.closest('label');
-          const textElement = label.querySelector('p');
+          // Clear any previous validation error
+          clearValidationError(this);
 
           if (this.files.length > 0) {
-            const fileName = this.files[0].name;
+            const file = this.files[0];
+
+            // Determine if this is a payslip input
+            const isPayslip = /^payslip[1-4]$/.test(this.name);
+
+            // For payslips: max size = 2 MB
+            // For all other file inputs: max size = 5 MB
+            const maxSizeBytes = isPayslip ? 2 * 1024 * 1024 : 5 * 1024 * 1024;
+
+            if (file.size > maxSizeBytes) {
+              const readableMax = isPayslip ? '2 MB' : '5 MB';
+              showValidationError(this, `File is too large. Maximum allowed size is ${readableMax}.`);
+              this.value = '';
+              updateProgress();
+              return;
+            }
+
+            // If size is valid, proceed to show file name
+            const label = this.closest('label');
+            const textElement = label.querySelector('p');
+            const fileName = file.name;
             textElement.textContent = `✓ ${fileName}`;
             textElement.classList.add('text-green-600', 'font-medium');
             label.classList.add('border-green-400', 'bg-green-50');
-            label.classList.remove('border-gray-300', 'border-red-500'); // Remove red border when file selected
-            clearValidationError(this);
+            label.classList.remove('border-gray-300', 'border-red-500');
           } else {
-            // Reset to original state
-            const originalText = this.name.includes('payslip') ? `Payslip ${this.name.slice(-1)}` :
-              this.name === 'atoNotice' ? 'Click to upload or drag and drop' :
-                this.name === 'centrelinkStatement' ? 'Click to upload PDF' :
-                  this.name === 'profitLossStatement' ? 'Click to upload P&L Statement' :
-                    this.name === 'childSupportAssessment' ? 'Click to upload assessment' :
-                      this.name === 'bankStatements' ? 'Upload bank statements' :
-                        this.name === 'proofOfRent' ? 'Upload proof of rent' :
-                          'Upload ID document';
+            // Reset to original state if no file
+            const label = this.closest('label');
+            const textElement = label.querySelector('p');
+            const originalText = this.name.includes('payslip')
+              ? `Payslip ${this.name.slice(-1)}`
+              : this.name === 'atoNotice'
+                ? 'Click to upload or drag and drop'
+                : this.name === 'centrelinkStatement'
+                  ? 'Click to upload PDF'
+                  : this.name === 'profitLossStatement'
+                    ? 'Click to upload P&L Statement'
+                    : this.name === 'childSupportAssessment'
+                      ? 'Click to upload assessment'
+                      : this.name === 'bankStatements'
+                        ? 'Upload bank statements'
+                        : this.name === 'proofOfRent'
+                          ? 'Upload proof of rent'
+                          : 'Upload ID document';
 
             textElement.textContent = originalText;
             textElement.classList.remove('text-green-600', 'font-medium');
@@ -772,14 +800,21 @@
         });
       });
 
-
       // Progress calculation
       function updateProgress() {
         const allInputs = form.querySelectorAll('input, select');
+
         const visibleRequiredInputs = Array.from(allInputs).filter(input => {
-          const isRequired = input.required;
-          const isVisible = !input.closest('.hidden');
-          return isRequired && isVisible;
+          if (!input.required) return false;
+
+          // For file inputs, we check the visibility of their label container:
+          if (input.type === 'file') {
+            const label = input.closest('label');
+            return label && label.offsetParent !== null;
+          }
+
+          // For everything else, check the element itself:
+          return input.offsetParent !== null;
         });
 
         const completedInputs = visibleRequiredInputs.filter(input => {
@@ -787,9 +822,8 @@
             return input.checked;
           } else if (input.type === 'file') {
             return input.files.length > 0;
-          } else {
-            return input.value.trim() !== '';
           }
+          return input.value.trim() !== '';
         });
 
         const progressPercentage = visibleRequiredInputs.length > 0
@@ -799,8 +833,7 @@
         progressBar.style.width = progressPercentage + '%';
         progressText.textContent = progressPercentage + '% Complete';
 
-        // Enable submit button when form is complete and consent is checked
-        const isFormComplete = progressPercentage === 100;
+        const isFormComplete = (progressPercentage === 100);
         const isConsentChecked = consentCheckbox.checked;
         submitButton.disabled = !(isFormComplete && isConsentChecked);
       }
@@ -822,9 +855,9 @@
               message = 'Please enter a valid Australian phone number';
             } else if (this.name === 'tfn') {
               if (this.validity.patternMismatch) {
-                message = 'Tax File Number must be 8-9 digits only';
+                message = 'Tax File Number must be 9 digits only';
               } else {
-                message = 'Please enter your Tax File Number (8-9 digits)';
+                message = 'Please enter your Tax File Number (9 digits)';
               }
             } else if (this.type === 'file') {
               message = 'Please select a file to upload';
@@ -925,22 +958,22 @@
       function showSuccessMessage() {
         const formContainer = document.querySelector('.bg-white.shadow-2xl');
         formContainer.innerHTML = `
-          <div class="text-center py-16 px-4 animate-fade-in">
-            <div class="bg-green-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
-              <i class="fas fa-check text-4xl text-green-600"></i>
-            </div>
-            <h2 class="text-3xl font-bold text-gray-800 mb-4">Application Submitted Successfully!</h2>
-            <p class="text-gray-600 mb-6 max-w-md mx-auto">
-              Thank you for submitting your financial application. We've received all your documents and will review your application within 2-3 business days.
-            </p>
-            <button
-              onclick="location.reload()"
-              class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 cursor-pointer"
-            >
-             Resubmit Application
-            </button>
+        <div class="text-center py-16 px-4 animate-fade-in">
+          <div class="bg-green-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-md">
+            <i class="fas fa-check text-4xl text-green-600"></i>
           </div>
-             `;
+          <h2 class="text-3xl font-bold text-gray-800 mb-4">Application Submitted Successfully!</h2>
+          <p class="text-gray-600 mb-6 max-w-md mx-auto">
+            Thank you for submitting your financial application. We've received all your documents and will review your application within 2-3 business days.
+          </p>
+          <button
+            onclick="location.reload()"
+            class="mt-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-md shadow-md transition duration-300 cursor-pointer"
+          >
+           Resubmit Application
+          </button>
+        </div>
+      `;
       }
 
       // Drag and drop functionality for file inputs
